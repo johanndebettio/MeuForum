@@ -110,6 +110,9 @@ class _HomePageState extends State<HomePage> {
       itemCount: posts.length,
       itemBuilder: (_, index) {
         final post = posts[index];
+        final canDelete = widget.user.username.toLowerCase() == 'johan' ||
+            post.userId == widget.user.id;
+
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(vertical: 6),
@@ -155,11 +158,13 @@ class _HomePageState extends State<HomePage> {
               );
               _loadPosts();
             },
-            trailing: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => _deletePost(post),
-              tooltip: 'Deletar Post',
-            ),
+            trailing: canDelete
+                ? IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _deletePost(post),
+                    tooltip: 'Deletar Post',
+                  )
+                : null,
           ),
         );
       },
