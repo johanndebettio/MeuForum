@@ -1,0 +1,169 @@
+import 'package:flutter/material.dart';
+import '../repositories/user_repository.dart';
+import '../models/user.dart';
+import 'login_page.dart';
+
+class RegisterPage extends StatefulWidget {
+  const RegisterPage({super.key});
+
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _displayNameController = TextEditingController();
+  final _userRepo = UserRepository();
+  bool _loading = false;
+
+  late AnimationController _animController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeIn),
+    );
+    _animController.forward();
+  }
+
+  void _register() async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text;
+    final displayName = _displayNameController.text.trim();
+
+    if (username.isEmpty || password.isEmpty || displayName.isEmpty) {
+      _showMessage('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      await _userRepo.createUser(User(
+        username: username,
+        password: password,
+        displayName: displayName,
+      ));
+      _showMessage('Cadastro realizado com sucesso!');
+      Navigator.pushReplacement(
+        // ignore: use_build_context_synchronously
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } catch (e) {
+      _showMessage(e.toString());
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  void _showMessage(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _displayNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final isWide = width > 600;
+
+    return Scaffold(
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Center(
+          child: SingleChildScrollView(
+            padding:
+                EdgeInsets.symmetric(horizontal: isWide ? width * 0.3 : 32),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              elevation: 8,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Cadastrar',
+                        style: TextStyle(
+                            fontSize: 28, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: _usernameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Usuário',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Senha',
+                        prefixIcon: Icon(Icons.lock),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _displayNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome de Exibição',
+                        prefixIcon: Icon(Icons.account_circle),
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _register,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: _loading
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
+                            : const Text('Cadastrar',
+                                style: TextStyle(fontSize: 18)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LoginPage()),
+                        );
+                      },
+                      child: const Text('Voltar para Login',
+                          style: TextStyle(fontSize: 16)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
