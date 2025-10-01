@@ -1,16 +1,31 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:io' show Platform;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DB {
   DB._();
 
   static final DB instance = DB._();
   static Database? _database;
+  static bool _isInitialized = false;
 
   Future<Database> get database async {
+    if (!_isInitialized) {
+      _initializeDatabaseFactory();
+      _isInitialized = true;
+    }
     if (_database != null) return _database!;
     _database = await _initDatabase();
     return _database!;
+  }
+  
+  void _initializeDatabaseFactory() {
+    // Configurar factory para desktop (Windows, Linux, macOS)
+    if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfi;
+    }
   }
 
   Future<Database> _initDatabase() async {
