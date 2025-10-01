@@ -33,6 +33,42 @@ class _FavoritesPageState extends State<FavoritesPage> {
     });
   }
 
+  void _deletePost(Post post) async {
+    final canDelete = widget.user.username.toLowerCase() == 'johan' ||
+        post.userId == widget.user.id;
+
+    if (!canDelete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você não pode deletar este post')),
+      );
+      return;
+    }
+
+    final confirm = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Deletar Post'),
+        content: const Text('Tem certeza que deseja deletar este post?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Deletar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await _postRepo.deletePost(post.id!);
+    _loadFavorites();
+    widget.refresh();
+  }
+
   String _formatDate(String isoDate) {
     final date = DateTime.tryParse(isoDate);
     if (date == null) return isoDate;
@@ -53,6 +89,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
             itemCount: _favoritesPosts.length,
             itemBuilder: (_, i) {
               final post = _favoritesPosts[i];
+              final canDelete = widget.user.username.toLowerCase() == 'johan' ||
+                  post.userId == widget.user.id;
+
               return AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 margin: const EdgeInsets.symmetric(vertical: 6),
@@ -94,6 +133,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
                                 fontSize: 12, color: Colors.grey)),
                     ],
                   ),
+                  trailing: canDelete
+                      ? IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deletePost(post),
+                        )
+                      : null,
                   onTap: () async {
                     await Navigator.push(
                       context,
