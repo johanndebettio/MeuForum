@@ -54,6 +54,16 @@ class _MyPostsPageState extends State<MyPostsPage>
   }
 
   void _deletePost(Post post) async {
+    final canDelete = widget.user.username.toLowerCase() == 'johan' ||
+        post.userId == widget.user.id;
+
+    if (!canDelete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você não pode deletar este post')),
+      );
+      return;
+    }
+
     final confirm = await showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -110,6 +120,10 @@ class _MyPostsPageState extends State<MyPostsPage>
               itemCount: _myPosts.length,
               itemBuilder: (_, i) {
                 final post = _myPosts[i];
+                final canDelete =
+                    widget.user.username.toLowerCase() == 'johan' ||
+                        post.userId == widget.user.id;
+
                 return Card(
                   elevation: 4,
                   margin: const EdgeInsets.symmetric(vertical: 8),
@@ -142,10 +156,12 @@ class _MyPostsPageState extends State<MyPostsPage>
                                   fontSize: 12, color: Colors.grey)),
                       ],
                     ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deletePost(post),
-                    ),
+                    trailing: canDelete
+                        ? IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deletePost(post),
+                          )
+                        : null,
                     onTap: () async {
                       await Navigator.push(
                         context,
