@@ -136,7 +136,7 @@ class _RegisterPageState extends State<RegisterPage>
                         errorText: _formValidator.getError('password'),
                         helperText:
                             'Mínimo de 8 caracteres contendo pelo menos: 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial.',
-                        helperMaxLines: 3,
+                        helperMaxLines: 4,
                         errorMaxLines: 3,
                       ),
                     ),
