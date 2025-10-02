@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../repositories/user_repository.dart';
 import '../models/user.dart';
+import '../utils/form_validator.dart';
 import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -16,6 +17,7 @@ class _RegisterPageState extends State<RegisterPage>
   final _passwordController = TextEditingController();
   final _displayNameController = TextEditingController();
   final _userRepo = UserRepository();
+  final _formValidator = FormValidator();
   bool _loading = false;
 
   late AnimationController _animController;
@@ -39,8 +41,11 @@ class _RegisterPageState extends State<RegisterPage>
     final password = _passwordController.text;
     final displayName = _displayNameController.text.trim();
 
-    if (username.isEmpty || password.isEmpty || displayName.isEmpty) {
-      _showMessage('Preencha todos os campos obrigatórios');
+    // Validar campos -- registro
+    _formValidator.validateRegisterForm(username, password, displayName);
+    
+    if (!_formValidator.isValid) {
+      setState(() {});
       return;
     }
 
@@ -104,29 +109,46 @@ class _RegisterPageState extends State<RegisterPage>
                     const SizedBox(height: 24),
                     TextField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        _formValidator.clearError('username');
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
                         labelText: 'Usuário',
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.person),
+                        border: const OutlineInputBorder(),
+                        errorText: _formValidator.getError('username'),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        _formValidator.clearError('password');
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
                         labelText: 'Senha',
-                        prefixIcon: Icon(Icons.lock),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
+                        border: const OutlineInputBorder(),
+                        errorText: _formValidator.getError('password'),
+                        helperText: 'Mín. 8 chars: maiúscula, minúscula, número e especial',
+                        helperMaxLines: 2,
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _displayNameController,
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        _formValidator.clearError('displayName');
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
                         labelText: 'Nome de Exibição',
-                        prefixIcon: Icon(Icons.account_circle),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.account_circle),
+                        border: const OutlineInputBorder(),
+                        errorText: _formValidator.getError('displayName'),
                       ),
                     ),
                     const SizedBox(height: 24),

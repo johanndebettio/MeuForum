@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 import '../models/post.dart';
 import '../repositories/post_repository.dart';
+import '../utils/form_validator.dart';
 
 class CreatePostPage extends StatefulWidget {
   final User user;
@@ -16,6 +17,7 @@ class _CreatePostPageState extends State<CreatePostPage>
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _postRepo = PostRepository();
+  final _formValidator = FormValidator();
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
@@ -42,8 +44,11 @@ class _CreatePostPageState extends State<CreatePostPage>
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
-    if (title.isEmpty) {
-      _showMessage('O título é obrigatório');
+    // Validar campos -- post
+    _formValidator.validatePostForm(title, content.isEmpty ? null : content);
+    
+    if (!_formValidator.isValid) {
+      setState(() {});
       return;
     }
 
@@ -91,17 +96,29 @@ class _CreatePostPageState extends State<CreatePostPage>
               children: [
                 TextField(
                   controller: _titleController,
-                  decoration: const InputDecoration(
+                  onChanged: (_) {
+                    _formValidator.clearError('title');
+                    setState(() {});
+                  },
+                  decoration: InputDecoration(
                     labelText: 'Título',
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
+                    errorText: _formValidator.getError('title'),
+                    helperText: 'Entre 5 e 100 caracteres',
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _contentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Conteúdo',
-                    border: OutlineInputBorder(),
+                  onChanged: (_) {
+                    _formValidator.clearError('content');
+                    setState(() {});
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Conteúdo (opcional)',
+                    border: const OutlineInputBorder(),
+                    errorText: _formValidator.getError('content'),
+                    helperText: 'Máximo 5000 caracteres',
                   ),
                   maxLines: 5,
                 ),
