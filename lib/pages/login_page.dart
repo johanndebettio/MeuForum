@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../utils/form_validator.dart';
 import 'home_page.dart';
 import 'register_page.dart';
 
@@ -15,6 +16,7 @@ class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _formValidator = FormValidator();
   bool _loading = false;
 
   late AnimationController _animController;
@@ -37,8 +39,11 @@ class _LoginPageState extends State<LoginPage>
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
-      _showMessage('Informe usuário e senha');
+    // Validar campos -- login
+    _formValidator.validateLoginForm(username, password);
+    
+    if (!_formValidator.isValid) {
+      setState(() {});
       return;
     }
 
@@ -104,20 +109,30 @@ class _LoginPageState extends State<LoginPage>
                     const SizedBox(height: 24),
                     TextField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        _formValidator.clearError('username');
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
                         labelText: 'Usuário',
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.person),
+                        border: const OutlineInputBorder(),
+                        errorText: _formValidator.getError('username'),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: const InputDecoration(
+                      onChanged: (_) {
+                        _formValidator.clearError('password');
+                        setState(() {});
+                      },
+                      decoration: InputDecoration(
                         labelText: 'Senha',
-                        prefixIcon: Icon(Icons.lock),
-                        border: OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
+                        border: const OutlineInputBorder(),
+                        errorText: _formValidator.getError('password'),
                       ),
                     ),
                     const SizedBox(height: 24),

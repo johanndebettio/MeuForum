@@ -6,6 +6,7 @@ import '../repositories/comment_repository.dart';
 import '../repositories/like_dislike_repository.dart';
 import '../repositories/favorite_repository.dart';
 import '../repositories/post_repository.dart';
+import '../utils/form_validator.dart';
 
 class PostDetailPage extends StatefulWidget {
   final Post post;
@@ -24,6 +25,7 @@ class _PostDetailPageState extends State<PostDetailPage>
   final _likeRepo = LikeDislikeRepository();
   final _favRepo = FavoriteRepository();
   final _postRepo = PostRepository();
+  final _formValidator = FormValidator();
 
   List<Comment> _comments = [];
   bool _isFavorited = false;
@@ -91,7 +93,14 @@ class _PostDetailPageState extends State<PostDetailPage>
 
   Future<void> _addComment() async {
     final text = _commentController.text.trim();
-    if (text.isEmpty) return;
+    
+    // Validar campos -- comentario
+    _formValidator.validateCommentForm(text);
+    
+    if (!_formValidator.isValid) {
+      setState(() {});
+      return;
+    }
 
     await _commentRepo.createComment(Comment(
       postId: widget.post.id!,
@@ -229,6 +238,10 @@ class _PostDetailPageState extends State<PostDetailPage>
                     ),
                     TextField(
                       controller: _commentController,
+                      onChanged: (_) {
+                        _formValidator.clearError('content');
+                        setState(() {});
+                      },
                       decoration: InputDecoration(
                         labelText: 'Adicionar comentário',
                         suffixIcon: IconButton(
@@ -236,6 +249,8 @@ class _PostDetailPageState extends State<PostDetailPage>
                           onPressed: _addComment,
                         ),
                         border: const OutlineInputBorder(),
+                        errorText: _formValidator.getError('content'),
+                        helperText: 'Máximo 500 caracteres',
                       ),
                     ),
                   ],
