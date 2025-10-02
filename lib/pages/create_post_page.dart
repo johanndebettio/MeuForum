@@ -87,59 +87,61 @@ class _CreatePostPageState extends State<CreatePostPage>
       opacity: _fadeAnimation,
       child: Scaffold(
         appBar: AppBar(title: const Text('Criar Post')),
-        body: Center(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            width: isWide ? 600 : double.infinity,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _titleController,
-                  onChanged: (_) {
-                    _formValidator.clearError('title');
-                    setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Título',
-                    border: const OutlineInputBorder(),
-                    errorText: _formValidator.getError('title'),
-                    helperText: 'Entre 5 e 100 caracteres',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _contentController,
-                  onChanged: (_) {
-                    _formValidator.clearError('content');
-                    setState(() {});
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Conteúdo (opcional)',
-                    border: const OutlineInputBorder(),
-                    errorText: _formValidator.getError('content'),
-                    helperText: 'Máximo 5000 caracteres',
-                  ),
-                  maxLines: 5,
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _createPost,
-                    icon: const Icon(Icons.send),
-                    label: const Text('Criar Post',
-                        style: TextStyle(fontSize: 18)),
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
+        body: SingleChildScrollView(
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              width: isWide ? 600 : double.infinity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _titleController,
+                    onChanged: (_) {
+                      _formValidator.clearError('title');
+                      setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Título',
+                      border: const OutlineInputBorder(),
+                      errorText: _formValidator.getError('title'),
+                      helperText: 'Entre 5 e 100 caracteres',
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _contentController,
+                    onChanged: (_) {
+                      _formValidator.clearError('content');
+                      setState(() {});
+                    },
+                    decoration: InputDecoration(
+                      labelText: 'Conteúdo (opcional)',
+                      border: const OutlineInputBorder(),
+                      errorText: _formValidator.getError('content'),
+                      helperText: 'Máximo 5000 caracteres',
+                    ),
+                    maxLines: 5,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: _createPost,
+                      icon: const Icon(Icons.send),
+                      label: const Text('Criar Post',
+                          style: TextStyle(fontSize: 18)),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
