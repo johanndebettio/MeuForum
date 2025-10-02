@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:io' show Platform;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -19,7 +18,7 @@ class DB {
     _database = await _initDatabase();
     return _database!;
   }
-  
+
   void _initializeDatabaseFactory() {
     // Configurar factory para desktop (Windows, Linux, macOS)
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

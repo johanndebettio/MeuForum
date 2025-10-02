@@ -1,25 +1,27 @@
 class ValidationHelper {
-  // Validaçãop geral
+  // Validação geral
   static String? validateRequired(String? value, String fieldName) {
     if (value == null || value.trim().isEmpty) {
-      return '$fieldName é obrigatório';
-    }
-    return null;
-  }
-  // Tamanho string
-  static String? validateLength(String? value, String fieldName, int minLength, int maxLength) {
-    if (value == null) return null;
-    
-    if (value.length < minLength) {
-      return '$fieldName deve ter pelo menos $minLength caracteres';
-    }
-    if (value.length > maxLength) {
-      return '$fieldName deve ter no máximo $maxLength caracteres';
+      return '$fieldName é obrigatório.';
     }
     return null;
   }
 
-  // Nome Usuario
+  // Tamanho string
+  static String? validateLength(
+      String? value, String fieldName, int minLength, int maxLength) {
+    if (value == null) return null;
+
+    if (value.length < minLength) {
+      return '$fieldName deve conter pelo menos $minLength caracteres.';
+    }
+    if (value.length > maxLength) {
+      return '$fieldName deve conter no máximo $maxLength caracteres.';
+    }
+    return null;
+  }
+
+  // Nome Usuário
   static String? validateUsername(String? username) {
     final required = validateRequired(username, 'Nome de usuário');
     if (required != null) return required;
@@ -28,7 +30,7 @@ class ValidationHelper {
     if (length != null) return length;
 
     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
-      return 'Nome de usuário deve conter apenas letras, números e underscore';
+      return 'Nome de usuário deve conter apenas letras, números e underscore.';
     }
 
     return null;
@@ -40,10 +42,11 @@ class ValidationHelper {
     if (required != null) return required;
 
     if (password!.length < 8) {
-      return 'Senha deve ter pelo menos 8 caracteres';
+      return 'Senha deve conter pelo menos 8 caracteres.';
     }
 
-    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$').hasMatch(password)) {
+    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$')
+        .hasMatch(password)) {
       return 'Senha deve conter ao menos: 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial';
     }
 
@@ -59,13 +62,13 @@ class ValidationHelper {
     if (length != null) return length;
 
     if (!RegExp(r'^[a-zA-ZÀ-ÿ\s]+$').hasMatch(displayName)) {
-      return 'Nome de exibição deve conter apenas letras e espaços';
+      return 'Nome de exibição deve conter apenas letras e espaços.';
     }
 
     return null;
   }
 
-  // Titulo post
+  // Título post
   static String? validatePostTitle(String? title) {
     final required = validateRequired(title, 'Título');
     if (required != null) return required;
@@ -76,7 +79,7 @@ class ValidationHelper {
     return null;
   }
 
-  // Conteudo post
+  // Conteúdo post
   static String? validatePostContent(String? content) {
     if (content != null && content.trim().isNotEmpty) {
       final length = validateLength(content, 'Conteúdo', 1, 5000);
@@ -85,7 +88,7 @@ class ValidationHelper {
     return null;
   }
 
-  // Comentario post
+  // Comentário post
   static String? validateCommentContent(String? content) {
     final required = validateRequired(content, 'Comentário');
     if (required != null) return required;
@@ -95,5 +98,4 @@ class ValidationHelper {
 
     return null;
   }
-
 }

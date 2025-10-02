@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage>
 
     // Validar campos -- login
     _formValidator.validateLoginForm(username, password);
-    
+
     if (!_formValidator.isValid) {
       setState(() {});
       return;

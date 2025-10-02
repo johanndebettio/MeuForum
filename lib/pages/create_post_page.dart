@@ -46,7 +46,7 @@ class _CreatePostPageState extends State<CreatePostPage>
 
     // Validar campos -- post
     _formValidator.validatePostForm(title, content.isEmpty ? null : content);
-    
+
     if (!_formValidator.isValid) {
       setState(() {});
       return;

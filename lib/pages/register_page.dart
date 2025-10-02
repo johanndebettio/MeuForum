@@ -43,7 +43,7 @@ class _RegisterPageState extends State<RegisterPage>
 
     // Validar campos -- registro
     _formValidator.validateRegisterForm(username, password, displayName);
-    
+
     if (!_formValidator.isValid) {
       setState(() {});
       return;
@@ -118,6 +118,7 @@ class _RegisterPageState extends State<RegisterPage>
                         prefixIcon: const Icon(Icons.person),
                         border: const OutlineInputBorder(),
                         errorText: _formValidator.getError('username'),
+                        errorMaxLines: 3,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -133,8 +134,10 @@ class _RegisterPageState extends State<RegisterPage>
                         prefixIcon: const Icon(Icons.lock),
                         border: const OutlineInputBorder(),
                         errorText: _formValidator.getError('password'),
-                        helperText: 'Mín. 8 chars: maiúscula, minúscula, número e especial',
-                        helperMaxLines: 2,
+                        helperText:
+                            'Mínimo de 8 caracteres contendo pelo menos: 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial.',
+                        helperMaxLines: 3,
+                        errorMaxLines: 3,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -149,6 +152,7 @@ class _RegisterPageState extends State<RegisterPage>
                         prefixIcon: const Icon(Icons.account_circle),
                         border: const OutlineInputBorder(),
                         errorText: _formValidator.getError('displayName'),
+                        errorMaxLines: 3,
                       ),
                     ),
                     const SizedBox(height: 24),

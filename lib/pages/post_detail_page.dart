@@ -93,10 +93,10 @@ class _PostDetailPageState extends State<PostDetailPage>
 
   Future<void> _addComment() async {
     final text = _commentController.text.trim();
-    
+
     // Validar campos -- comentario
     _formValidator.validateCommentForm(text);
-    
+
     if (!_formValidator.isValid) {
       setState(() {});
       return;
