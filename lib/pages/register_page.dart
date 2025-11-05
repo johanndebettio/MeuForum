@@ -41,7 +41,6 @@ class _RegisterPageState extends State<RegisterPage>
     final password = _passwordController.text;
     final displayName = _displayNameController.text.trim();
 
-    // Validar campos -- registro
     _formValidator.validateRegisterForm(username, password, displayName);
 
     if (!_formValidator.isValid) {
@@ -103,9 +102,11 @@ class _RegisterPageState extends State<RegisterPage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Cadastrar',
-                        style: TextStyle(
-                            fontSize: 28, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Cadastrar',
+                      style:
+                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 24),
                     TextField(
                       controller: _usernameController,
@@ -163,25 +164,44 @@ class _RegisterPageState extends State<RegisterPage>
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: _loading
                             ? const CircularProgressIndicator(
-                                color: Colors.white)
-                            : const Text('Cadastrar',
-                                style: TextStyle(fontSize: 18)),
+                                color: Colors.white,
+                              )
+                            : const Text(
+                                'Cadastrar',
+                                style: TextStyle(fontSize: 18),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginPage()),
-                        );
-                      },
-                      child: const Text('Voltar para Login',
-                          style: TextStyle(fontSize: 16)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading
+                            ? null
+                            : () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const LoginPage(),
+                                  ),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Voltar para Login',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
                     ),
                   ],
                 ),
