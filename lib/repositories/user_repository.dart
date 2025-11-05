@@ -40,12 +40,14 @@ class UserRepository {
     return User.fromMap(maps.first);
   }
 
-  Future<User?> authenticate(String username, String password) async {
+  Future<String> authenticate(String username, String password) async {
     final user = await getUserByUsername(username);
-    if (user == null) return null;
+    if (user == null) return 'user_not_found';
 
     final ok = BCrypt.checkpw(password, user.password);
-    return ok ? user : null;
+    if (!ok) return 'wrong_password';
+
+    return 'success';
   }
 
   bool _validatePassword(String password) {
