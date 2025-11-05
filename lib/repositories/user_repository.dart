@@ -1,6 +1,7 @@
 import 'package:bcrypt/bcrypt.dart';
 import '../database/db.dart';
 import '../models/user.dart';
+import 'package:sqflite/sqflite.dart';
 
 class UserRepository {
   final db = DB.instance;
@@ -19,12 +20,20 @@ class UserRepository {
 
     final hashed = BCrypt.hashpw(user.password, BCrypt.gensalt());
 
-    return await database.insert('users', {
-      'username': user.username,
-      'password': hashed,
-      'display_name': user.displayName,
-      'created_at': user.createdAt ?? DateTime.now().toIso8601String(),
-    });
+    try {
+      return await database.insert('users', {
+        'username': user.username,
+        'password': hashed,
+        'display_name': user.displayName,
+        'created_at': user.createdAt ?? DateTime.now().toIso8601String(),
+      });
+    } on DatabaseException catch (e) {
+      if (e.isUniqueConstraintError()) {
+        throw Exception('Nome de usuário já existe');
+      } else {
+        throw Exception('Erro ao criar usuário');
+      }
+    }
   }
 
   Future<User?> getUserByUsername(String username) async {
