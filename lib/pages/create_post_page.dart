@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../models/post.dart';
-import '../repositories/post_repository.dart';
+import '../providers/post_provider.dart';
 import '../utils/form_validator.dart';
 
 class CreatePostPage extends StatefulWidget {
@@ -16,7 +17,6 @@ class _CreatePostPageState extends State<CreatePostPage>
     with SingleTickerProviderStateMixin {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
-  final _postRepo = PostRepository();
   final _formValidator = FormValidator();
 
   late AnimationController _animController;
@@ -26,7 +26,9 @@ class _CreatePostPageState extends State<CreatePostPage>
   void initState() {
     super.initState();
     _animController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 400));
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
     _fadeAnimation =
         CurvedAnimation(parent: _animController, curve: Curves.easeIn);
     _animController.forward();
@@ -44,7 +46,6 @@ class _CreatePostPageState extends State<CreatePostPage>
     final title = _titleController.text.trim();
     final content = _contentController.text.trim();
 
-    // Validar campos -- post
     _formValidator.validatePostForm(title, content.isEmpty ? null : content);
 
     if (!_formValidator.isValid) {
@@ -63,12 +64,14 @@ class _CreatePostPageState extends State<CreatePostPage>
         title: title,
         content: content.isEmpty ? null : content,
         createdAt: DateTime.now().toIso8601String(),
+        userDisplayName: widget.user.displayName,
       );
 
-      await _postRepo.createPost(post);
+      await context.read<PostProvider>().createPost(post);
+
       _showMessage('Post criado com sucesso!');
       // ignore: use_build_context_synchronously
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       _showMessage('Erro ao criar post');
     }
@@ -130,8 +133,10 @@ class _CreatePostPageState extends State<CreatePostPage>
                     child: ElevatedButton.icon(
                       onPressed: _createPost,
                       icon: const Icon(Icons.send),
-                      label: const Text('Criar Post',
-                          style: TextStyle(fontSize: 18)),
+                      label: const Text(
+                        'Criar Post',
+                        style: TextStyle(fontSize: 18),
+                      ),
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
