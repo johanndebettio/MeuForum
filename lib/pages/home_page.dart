@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:meu_forum/providers/user_provider.dart';
 import 'package:provider/provider.dart';
-import '../models/user.dart';
 import '../models/post.dart';
+import '../models/user.dart';
 import '../providers/post_provider.dart';
-import '../providers/user_provider.dart';
-import 'create_post_page.dart';
-import 'post_detail_page.dart';
-import 'reset_database_page.dart';
-import 'login_page.dart';
+import 'all_posts_page.dart';
 import 'favorites_page.dart';
 import 'my_posts_page.dart';
+import 'create_post_page.dart';
+import 'login_page.dart';
+import 'reset_database_page.dart';
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -20,74 +20,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final PageController _pageController = PageController();
-  int _currentIndex = 0;
+  int _selectedIndex = 0;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
-    // ignore: use_build_context_synchronously
-    Future.microtask(() => context.read<PostProvider>().loadPosts());
+    _pageController = PageController(initialPage: _selectedIndex);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PostProvider>().loadPosts();
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  void _logout() async {
-    await context.read<UserProvider>().logout();
-    if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
-  }
-
-  void _goToCreatePost() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => CreatePostPage(user: widget.user)),
-    );
-    if (!mounted) return;
-    context.read<PostProvider>().loadPosts();
-  }
-
-  void _deletePost(Post post) async {
-    final user = widget.user;
-    final canDelete =
-        user.username.toLowerCase() == 'johan' || post.userId == user.id;
-
-    if (!canDelete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você não pode deletar este post!')),
-      );
-      return;
-    }
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Confirmar deleção'),
-        content: const Text('Deseja realmente deletar este post?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Deletar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      if (!mounted) return;
-      await context.read<PostProvider>().deletePost(post.id!);
-    }
   }
 
   String _formatDate(String isoDate) {
@@ -98,168 +46,141 @@ class _HomePageState extends State<HomePage> {
         '${date.year}';
   }
 
-  List<Widget> _pages() => [
-        _buildPostsList(),
-        MyPostsPage(
-          user: widget.user,
-          refresh: () => context.read<PostProvider>().loadPosts(),
-        ),
-        FavoritesPage(
-          user: widget.user,
-          refresh: () => context.read<PostProvider>().loadPosts(),
-        ),
-      ];
+  Future<void> _deletePost(Post post) async {
+    final postProvider = context.read<PostProvider>();
+    final canDelete = widget.user.username.toLowerCase() == 'johan' ||
+        post.userId == widget.user.id;
 
-  Widget _buildPostsList() {
-    final postProvider = context.watch<PostProvider>();
-    final posts = postProvider.posts;
-    final isLoading = postProvider.isLoading;
-    final error = postProvider.errorMessage;
-    final width = MediaQuery.of(context).size.width;
-    final isWide = width > 600;
-
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+    if (!canDelete) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Você não pode deletar este post!')),
+      );
+      return;
     }
 
-    if (error != null) {
-      return Center(child: Text(error));
-    }
-
-    if (posts.isEmpty) {
-      return const Center(child: Text('Nenhum post encontrado.'));
-    }
-
-    return RefreshIndicator(
-      onRefresh: () => context.read<PostProvider>().loadPosts(),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(12),
-        itemCount: posts.length,
-        itemBuilder: (_, index) {
-          final post = posts[index];
-          final canDelete = widget.user.username.toLowerCase() == 'johan' ||
-              post.userId == widget.user.id;
-
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: const [
-                BoxShadow(
-                    color: Colors.black12, blurRadius: 4, offset: Offset(2, 2)),
-              ],
-            ),
-            child: ListTile(
-              contentPadding: EdgeInsets.symmetric(
-                  horizontal: isWide ? 24 : 16, vertical: 12),
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('Título:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(post.title, style: const TextStyle(fontSize: 16)),
-                  const SizedBox(height: 8),
-                  const Text('Autor:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(post.userDisplayName ?? 'Desconhecido',
-                      style: const TextStyle(
-                          fontSize: 14, fontStyle: FontStyle.italic)),
-                  const SizedBox(height: 8),
-                  const Text('Conteúdo:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(post.content ?? '',
-                      style: const TextStyle(fontSize: 14)),
-                  const SizedBox(height: 8),
-                  if (post.createdAt != null)
-                    Text('Criado em: ${_formatDate(post.createdAt!)}',
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              ),
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        PostDetailPage(post: post, user: widget.user),
-                  ),
-                );
-                if (!mounted) return;
-                context.read<PostProvider>().loadPosts();
-              },
-              trailing: canDelete
-                  ? IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _deletePost(post),
-                      tooltip: 'Deletar Post',
-                    )
-                  : null,
-            ),
-          );
-        },
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Deletar Post'),
+        content: const Text('Tem certeza que deseja deletar este post?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Deletar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
+    );
+
+    if (confirm == true) {
+      await postProvider.deletePost(post.id!);
+      await postProvider.loadPosts();
+    }
+  }
+
+  void _logout() async {
+    await context.read<UserProvider>().logout();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
     );
   }
 
+  List<Widget> _buildPages() => [
+        AllPostsPage(
+          user: widget.user,
+          onDelete: _deletePost,
+          formatDate: _formatDate,
+        ),
+        MyPostsPage(
+          user: widget.user,
+          onDelete: _deletePost,
+          formatDate: _formatDate,
+        ),
+        FavoritesPage(
+          user: widget.user,
+          onDelete: _deletePost,
+          formatDate: _formatDate,
+        ),
+      ];
+
   @override
   Widget build(BuildContext context) {
+    final titles = ['Todos os Posts', 'Meus Posts', 'Favoritos'];
+    final isJohan = widget.user.username.toLowerCase() == 'johan';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meu Fórum'),
+        automaticallyImplyLeading: false,
+        title: Text(titles[_selectedIndex]),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.exit_to_app),
-            tooltip: 'Sair',
-            onPressed: _logout,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            tooltip: 'Criar Post',
-            onPressed: _goToCreatePost,
-          ),
-          if (widget.user.username.toLowerCase() == 'johan')
+          if (isJohan)
             IconButton(
-              icon: const Icon(Icons.warning, color: Colors.red),
-              tooltip: 'Resetar Banco',
-              onPressed: () async {
-                await Navigator.push(
+              icon: const Icon(Icons.restore),
+              tooltip: 'Resetar Banco de Dados',
+              onPressed: () {
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ResetDatabasePage()),
+                  MaterialPageRoute(
+                    builder: (_) => const ResetDatabasePage(),
+                  ),
                 );
-                if (!mounted) return;
-                // ignore: use_build_context_synchronously
-                context.read<PostProvider>().loadPosts();
               },
             ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+          ),
         ],
       ),
       body: PageView(
         controller: _pageController,
-        physics: const BouncingScrollPhysics(),
-        onPageChanged: (index) {
-          setState(() => _currentIndex = index);
-        },
-        children: _pages(),
+        onPageChanged: (index) => setState(() => _selectedIndex = index),
+        children: _buildPages(),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (i) {
-          setState(() => _currentIndex = i);
-          _pageController.animateToPage(
-            i,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          _pageController.jumpToPage(index);
+          setState(() => _selectedIndex = index);
         },
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Todos'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.person), label: 'Meus Posts'),
-          BottomNavigationBarItem(icon: Icon(Icons.star), label: 'Favoritos'),
+            icon: Icon(Icons.public),
+            label: 'Todos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Meus',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favoritos',
+          ),
         ],
       ),
+      floatingActionButton: _selectedIndex == 0 || _selectedIndex == 1
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CreatePostPage(user: widget.user),
+                  ),
+                );
+                // ignore: use_build_context_synchronously
+                await context.read<PostProvider>().loadPosts();
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Novo Post'),
+            )
+          : null,
     );
   }
 }
