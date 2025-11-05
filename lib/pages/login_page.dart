@@ -39,7 +39,6 @@ class _LoginPageState extends State<LoginPage>
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    // Validar campos -- login
     _formValidator.validateLoginForm(username, password);
 
     if (!_formValidator.isValid) {
@@ -48,19 +47,19 @@ class _LoginPageState extends State<LoginPage>
     }
 
     setState(() => _loading = true);
-    final success = await Provider.of<UserProvider>(context, listen: false)
+    final message = await Provider.of<UserProvider>(context, listen: false)
         .login(username, password);
     setState(() => _loading = false);
 
-    if (!success) {
-      _showMessage('Usuário ou senha incorretos');
+    if (message != null) {
+      _showMessage(message);
       return;
     }
 
-    // ignore: use_build_context_synchronously
+    // Sucesso
+    if (!mounted) return;
     final user = Provider.of<UserProvider>(context, listen: false).user!;
     Navigator.pushReplacement(
-      // ignore: use_build_context_synchronously
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => HomePage(user: user),
@@ -103,9 +102,11 @@ class _LoginPageState extends State<LoginPage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Login',
-                        style: TextStyle(
-                            fontSize: 28, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Login',
+                      style:
+                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 24),
                     TextField(
                       controller: _usernameController,
@@ -143,26 +144,40 @@ class _LoginPageState extends State<LoginPage>
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: _loading
                             ? const CircularProgressIndicator(
-                                color: Colors.white)
+                                color: Colors.white,
+                              )
                             : const Text('Entrar',
                                 style: TextStyle(fontSize: 18)),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const RegisterPage()),
-                        );
-                      },
-                      child: const Text('Cadastrar',
-                          style: TextStyle(fontSize: 16)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading
+                            ? null
+                            : () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const RegisterPage(),
+                                  ),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Cadastrar',
+                            style: TextStyle(fontSize: 18)),
+                      ),
                     ),
                   ],
                 ),
