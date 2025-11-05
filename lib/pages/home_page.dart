@@ -21,6 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _postRepo = PostRepository();
+  final PageController _pageController = PageController();
   List<Post> _posts = [];
   int _currentIndex = 0;
 
@@ -28,6 +29,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadPosts();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   void _loadPosts() async {
@@ -201,10 +208,24 @@ class _HomePageState extends State<HomePage> {
             ),
         ],
       ),
-      body: _pages()[_currentIndex],
+      body: PageView(
+        controller: _pageController,
+        physics: const ClampingScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() => _currentIndex = index);
+        },
+        children: _pages(),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-        onTap: (i) => setState(() => _currentIndex = i),
+        onTap: (i) {
+          setState(() => _currentIndex = i);
+          _pageController.animateToPage(
+            i,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Todos'),
           BottomNavigationBarItem(
