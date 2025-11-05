@@ -11,24 +11,47 @@ class UserProvider extends ChangeNotifier {
   bool get isLoggedIn => _user != null;
 
   Future<void> loadSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    final username = prefs.getString('username');
-    if (username != null) {
-      _user = await _userRepo.getUserByUsername(username);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final username = prefs.getString('username');
+      if (username != null) {
+        final user = await _userRepo
+            .getUserByUsername(username)
+            .timeout(const Duration(seconds: 3), onTimeout: () => null);
+        if (user != null) {
+          _user = user;
+        }
+      }
+    } catch (e) {
+      debugPrint('Erro ao carregar sessão: $e');
+    } finally {
       notifyListeners();
     }
   }
 
-  Future<bool> login(String username, String password) async {
-    final user = await _userRepo.authenticate(username, password);
-    if (user != null) {
-      _user = user;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('username', user.username);
-      notifyListeners();
-      return true;
+  Future<String?> login(String username, String password) async {
+    try {
+      final result = await _userRepo.authenticate(username, password);
+
+      if (result == 'user_not_found') {
+        return 'Usuário não encontrado.';
+      } else if (result == 'wrong_password') {
+        return 'A senha digitada para esse usuário está incorreta.';
+      } else if (result == 'success') {
+        final user = await _userRepo.getUserByUsername(username);
+        if (user != null) {
+          _user = user;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('username', user.username);
+          notifyListeners();
+          return null;
+        }
+      }
+      return 'erro desconhecido';
+    } catch (e) {
+      debugPrint('Erro ao fazer login: $e');
+      return 'erro ao conectar ao servidor';
     }
-    return false;
   }
 
   Future<void> logout() async {
