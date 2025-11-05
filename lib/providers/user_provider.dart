@@ -33,24 +33,27 @@ class UserProvider extends ChangeNotifier {
     try {
       final result = await _userRepo.authenticate(username, password);
 
-      if (result == 'user_not_found') {
-        return 'Usuário não encontrado.';
-      } else if (result == 'wrong_password') {
-        return 'A senha digitada para esse usuário está incorreta.';
-      } else if (result == 'success') {
-        final user = await _userRepo.getUserByUsername(username);
-        if (user != null) {
-          _user = user;
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('username', user.username);
-          notifyListeners();
-          return null;
-        }
+      switch (result) {
+        case 'user_not_found':
+          return 'Usuário não encontrado.';
+        case 'wrong_password':
+          return 'Senha incorreta. Verifique e tente novamente.';
+        case 'success':
+          final user = await _userRepo.getUserByUsername(username);
+          if (user != null) {
+            _user = user;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('username', user.username);
+            notifyListeners();
+            return null;
+          }
+          return 'Erro ao carregar dados do usuário.';
+        default:
+          return 'Erro desconhecido. Retorno: $result';
       }
-      return 'erro desconhecido';
     } catch (e) {
       debugPrint('Erro ao fazer login: $e');
-      return 'erro ao conectar ao servidor';
+      return 'Erro de conexão com o servidor.';
     }
   }
 
