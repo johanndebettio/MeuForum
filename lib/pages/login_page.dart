@@ -103,9 +103,9 @@ class _LoginPageState extends State<LoginPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      'Login',
+                      'Meu Forum Login',
                       style:
-                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 28, fontWeight: FontWeight.w100),
                     ),
                     const SizedBox(height: 24),
                     TextField(
