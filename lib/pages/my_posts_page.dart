@@ -1,180 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/user.dart';
 import '../models/post.dart';
+import '../models/user.dart';
 import '../providers/post_provider.dart';
 import 'post_detail_page.dart';
 
 class MyPostsPage extends StatefulWidget {
   final User user;
-  final VoidCallback refresh;
-  const MyPostsPage({super.key, required this.user, required this.refresh});
+  final Function(Post) onDelete;
+  final String Function(String) formatDate;
+
+  const MyPostsPage({
+    super.key,
+    required this.user,
+    required this.onDelete,
+    required this.formatDate,
+  });
 
   @override
   State<MyPostsPage> createState() => _MyPostsPageState();
 }
 
-class _MyPostsPageState extends State<MyPostsPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  late Animation<double> _fadeAnimation;
-
+class _MyPostsPageState extends State<MyPostsPage> {
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeIn,
-    );
-    _animController.forward();
-
-    Future.microtask(() {
-      if (widget.user.id != null) {
-        // ignore: use_build_context_synchronously
-        context.read<PostProvider>().loadPostsByUser(widget.user.id!);
-      }
-    });
-  }
-
-  void _deletePost(Post post) async {
-    final canDelete = widget.user.username.toLowerCase() == 'johan' ||
-        post.userId == widget.user.id;
-
-    if (!canDelete) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Você não pode deletar este post')),
-      );
-      return;
-    }
-
-    final confirm = await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Deletar Post'),
-        content: const Text('Tem certeza que deseja deletar este post?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Deletar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    // ignore: use_build_context_synchronously
-    await context.read<PostProvider>().deletePost(post.id!);
-    widget.refresh();
-  }
-
-  String _formatDate(String isoDate) {
-    final date = DateTime.tryParse(isoDate);
-    if (date == null) return isoDate;
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
+    context.read<PostProvider>().loadPostsByUser(widget.user.id!);
   }
 
   @override
   Widget build(BuildContext context) {
     final postProvider = context.watch<PostProvider>();
-    final posts = postProvider.posts;
-    final width = MediaQuery.of(context).size.width;
-    final isWide = width > 600;
+    final posts = postProvider.userPosts;
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: postProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : postProvider.errorMessage != null
-              ? Center(child: Text(postProvider.errorMessage!))
-              : ListView.builder(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isWide ? width * 0.2 : 16,
-                    vertical: 8,
+    if (postProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (posts.isEmpty) {
+      return const Center(child: Text('Nenhum post seu encontrado.'));
+    }
+
+    return RefreshIndicator(
+      onRefresh: () => postProvider.loadPostsByUser(widget.user.id!),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(12),
+        itemCount: posts.length,
+        itemBuilder: (_, i) {
+          final post = posts[i];
+          final canDelete = widget.user.username.toLowerCase() == 'johan' ||
+              post.userId == widget.user.id;
+
+          return Card(
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 3,
+            child: ListTile(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Título: ${post.title}",
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Autor: ${post.userDisplayName ?? 'Desconhecido'}"),
+                  const SizedBox(height: 4),
+                  Text("Conteúdo: ${post.content ?? ''}"),
+                  if (post.createdAt != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Criado em: ${widget.formatDate(post.createdAt!)}',
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
+                ],
+              ),
+              trailing: canDelete
+                  ? IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => widget.onDelete(post),
+                    )
+                  : null,
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        PostDetailPage(post: post, user: widget.user),
                   ),
-                  itemCount: posts.length,
-                  itemBuilder: (_, i) {
-                    final post = posts[i];
-                    final canDelete =
-                        widget.user.username.toLowerCase() == 'johan' ||
-                            post.userId == widget.user.id;
-
-                    return Card(
-                      elevation: 4,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(16),
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Título:',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(post.title,
-                                style: const TextStyle(fontSize: 16)),
-                            const SizedBox(height: 8),
-                            const Text('Autor:',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(post.userDisplayName ?? 'Desconhecido',
-                                style: const TextStyle(
-                                    fontSize: 14, fontStyle: FontStyle.italic)),
-                            const SizedBox(height: 8),
-                            const Text('Conteúdo:',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text(post.content ?? '',
-                                style: const TextStyle(fontSize: 14)),
-                            const SizedBox(height: 8),
-                            if (post.createdAt != null)
-                              Text('Criado em: ${_formatDate(post.createdAt!)}',
-                                  style: const TextStyle(
-                                      fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
-                        trailing: canDelete
-                            ? IconButton(
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deletePost(post),
-                              )
-                            : null,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  PostDetailPage(post: post, user: widget.user),
-                            ),
-                          );
-                          if (widget.user.id != null) {
-                            // ignore: use_build_context_synchronously
-                            context
-                                .read<PostProvider>()
-                                .loadPostsByUser(widget.user.id!);
-                          }
-                          widget.refresh();
-                        },
-                      ),
-                    );
-                  },
-                ),
+                );
+                await postProvider.loadPostsByUser(widget.user.id!);
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
