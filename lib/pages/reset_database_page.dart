@@ -84,7 +84,7 @@ class _ResetDatabasePageState extends State<ResetDatabasePage>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Somente Johan pode resetar o banco',
+                    const Text('Somente Johan pode resetar o banco.',
                         style: TextStyle(color: Colors.red, fontSize: 16)),
                     const SizedBox(height: 16),
                     TextField(
