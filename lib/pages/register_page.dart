@@ -56,6 +56,7 @@ class _RegisterPageState extends State<RegisterPage>
         displayName: displayName,
       ));
       _showMessage('Cadastro realizado com sucesso!');
+      // ignore: use_build_context_synchronously
       Navigator.pushReplacement(
         // ignore: use_build_context_synchronously
         context,
