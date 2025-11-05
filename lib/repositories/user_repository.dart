@@ -29,10 +29,12 @@ class UserRepository {
       });
     } on DatabaseException catch (e) {
       if (e.isUniqueConstraintError()) {
-        throw Exception('Nome de usuário já existe');
+        throw 'Nome de usuário já existe.';
       } else {
-        throw Exception('Erro ao criar usuário');
+        throw 'Erro ao criar usuário.';
       }
+    } catch (e) {
+      throw 'Erro inesperado ao criar usuário: $e';
     }
   }
 
