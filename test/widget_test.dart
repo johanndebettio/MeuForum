@@ -1,30 +1,45 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// Testes de Widget para o Meu Fórum
+// Estes testes verificam se a interface do usuário funciona corretamente
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:meu_forum/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MeuForumApp());
+  group('Widget Tests - App Principal', () {
+    testWidgets('App deve inicializar e mostrar loading', (WidgetTester tester) async {
+      // Arrange & Act
+      await tester.pumpWidget(const MeuForumApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      // Assert - Deve mostrar um indicador de carregamento
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    testWidgets('App deve ter o título correto', (WidgetTester tester) async {
+      // Arrange & Act
+      await tester.pumpWidget(const MeuForumApp());
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      // Assert - Verifica se o MaterialApp foi criado
+      final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+      expect(materialApp.title, 'Meu Fórum');
+    });
+
+    testWidgets('App deve ter debugShowCheckedModeBanner desabilitado', (WidgetTester tester) async {
+      // Arrange & Act
+      await tester.pumpWidget(const MeuForumApp());
+
+      // Assert
+      final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+      expect(materialApp.debugShowCheckedModeBanner, false);
+    });
+
+    testWidgets('App deve usar Material 3', (WidgetTester tester) async {
+      // Arrange & Act
+      await tester.pumpWidget(const MeuForumApp());
+
+      // Assert
+      final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+      expect(materialApp.theme?.useMaterial3, true);
+    });
   });
 }
