@@ -32,11 +32,15 @@ class DB {
 
       final db = await openDatabase(
         path,
-        version: 1,
+        version: 2, // Incrementada a versão para adicionar novas colunas
         onCreate: (db, version) async {
           print('Criando tabelas...');
           await _onCreate(db, version);
           print('Tabelas criadas com sucesso!');
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          print('Atualizando banco de $oldVersion para $newVersion');
+          await _onUpgrade(db, oldVersion, newVersion);
         },
       ).timeout(
         const Duration(seconds: 5),
@@ -77,13 +81,50 @@ class DB {
     }
   }
 
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      try {
+        // Verifica se a coluna profile_image_path já existe em users
+        final usersColumns = await db.rawQuery('PRAGMA table_info(users)');
+        final hasProfileImagePath = usersColumns.any((col) => col['name'] == 'profile_image_path');
+        
+        if (!hasProfileImagePath) {
+          await db.execute('ALTER TABLE users ADD COLUMN profile_image_path TEXT');
+          print('Coluna profile_image_path adicionada em users');
+        } else {
+          print('Coluna profile_image_path já existe em users');
+        }
+      } catch (e) {
+        print('Erro ao adicionar coluna profile_image_path: $e');
+      }
+
+      try {
+        // Verifica se a coluna image_path já existe em posts
+        final postsColumns = await db.rawQuery('PRAGMA table_info(posts)');
+        final hasImagePath = postsColumns.any((col) => col['name'] == 'image_path');
+        
+        if (!hasImagePath) {
+          await db.execute('ALTER TABLE posts ADD COLUMN image_path TEXT');
+          print('Coluna image_path adicionada em posts');
+        } else {
+          print('Coluna image_path já existe em posts');
+        }
+      } catch (e) {
+        print('Erro ao adicionar coluna image_path: $e');
+      }
+
+      print('Upgrade do banco concluído!');
+    }
+  }
+
   String get _users => '''
     CREATE TABLE users(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
       password TEXT NOT NULL,
       display_name TEXT,
-      created_at TEXT
+      created_at TEXT,
+      profile_image_path TEXT
     );
   ''';
 
@@ -94,6 +135,7 @@ class DB {
       title TEXT NOT NULL,
       content TEXT,
       created_at TEXT,
+      image_path TEXT,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   ''';

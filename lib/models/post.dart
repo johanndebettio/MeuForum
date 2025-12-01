@@ -5,6 +5,7 @@ class Post {
   String? content;
   String? createdAt;
   String? userDisplayName;
+  String? imagePath; // Caminho da imagem anexada ao post
 
   Post({
     this.id,
@@ -13,6 +14,7 @@ class Post {
     this.content,
     this.createdAt,
     this.userDisplayName,
+    this.imagePath,
   });
 
   factory Post.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class Post {
       content: map['content'] as String?,
       createdAt: map['created_at'] as String?,
       userDisplayName: map['user_display_name'] as String?,
+      imagePath: map['image_path'] as String?,
     );
   }
 
@@ -33,6 +36,7 @@ class Post {
       'title': title,
       'content': content,
       'created_at': createdAt,
+      'image_path': imagePath,
     };
   }
 }

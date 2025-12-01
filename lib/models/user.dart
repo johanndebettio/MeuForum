@@ -4,6 +4,7 @@ class User {
   String password;
   String? displayName;
   String? createdAt;
+  String? profileImagePath; // Caminho da imagem de perfil
 
   User({
     this.id,
@@ -11,6 +12,7 @@ class User {
     required this.password,
     this.displayName,
     this.createdAt,
+    this.profileImagePath,
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -20,6 +22,7 @@ class User {
       password: map['password'] as String,
       displayName: map['display_name'] as String?,
       createdAt: map['created_at'] as String?,
+      profileImagePath: map['profile_image_path'] as String?,
     );
   }
 
@@ -30,6 +33,7 @@ class User {
       'password': password,
       'display_name': displayName,
       'created_at': createdAt,
+      'profile_image_path': profileImagePath,
     };
   }
 }

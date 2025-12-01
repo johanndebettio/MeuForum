@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../providers/post_provider.dart';
+import '../widgets/post_card.dart';
 import 'post_detail_page.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -51,49 +52,21 @@ class _FavoritesPageState extends State<FavoritesPage> {
           final canDelete = widget.user.username.toLowerCase() == 'johan' ||
               post.userId == widget.user.id;
 
-          return Card(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 3,
-            child: ListTile(
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Título: ${post.title}",
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  Text("Autor: ${post.userDisplayName ?? 'Desconhecido'}"),
-                  const SizedBox(height: 4),
-                  Text("Conteúdo: ${post.content ?? ''}"),
-                  if (post.createdAt != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Criado em: ${widget.formatDate(post.createdAt!)}',
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    ),
-                ],
-              ),
-              trailing: canDelete
-                  ? IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => widget.onDelete(post),
-                    )
-                  : null,
-              onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        PostDetailPage(post: post, user: widget.user),
-                  ),
-                );
-                await postProvider.loadFavoritePosts(widget.user.id!);
-              },
-            ),
+          return PostCard(
+            post: post,
+            formatDate: widget.formatDate,
+            canDelete: canDelete,
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      PostDetailPage(post: post, user: widget.user),
+                ),
+              );
+              await postProvider.loadFavoritePosts(widget.user.id!);
+            },
+            onDelete: canDelete ? () => widget.onDelete(post) : null,
           );
         },
       ),

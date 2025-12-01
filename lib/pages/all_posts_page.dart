@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../providers/post_provider.dart';
+import '../widgets/post_card.dart';
 import 'post_detail_page.dart';
 
 class AllPostsPage extends StatelessWidget {
@@ -44,8 +45,10 @@ class AllPostsPage extends StatelessWidget {
           final canDelete =
               user.username.toLowerCase() == 'johan' || post.userId == user.id;
 
-          return InkWell(
-            borderRadius: BorderRadius.circular(16),
+          return PostCard(
+            post: post,
+            formatDate: formatDate,
+            canDelete: canDelete,
             onTap: () async {
               await Navigator.push(
                 context,
@@ -55,58 +58,7 @@ class AllPostsPage extends StatelessWidget {
               );
               await postProvider.loadPosts();
             },
-            child: Card(
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 3,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Título:',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700])),
-                    Text(post.title,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 8),
-                    Text('Autor:',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700])),
-                    Text(post.userDisplayName ?? 'Desconhecido',
-                        style: const TextStyle(
-                            fontStyle: FontStyle.italic, fontSize: 14)),
-                    const SizedBox(height: 8),
-                    Text('Conteúdo:',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700])),
-                    Text(post.content ?? '',
-                        style: const TextStyle(fontSize: 14)),
-                    const SizedBox(height: 8),
-                    if (post.createdAt != null)
-                      Text(
-                        'Criado em: ${formatDate(post.createdAt!)}',
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 12),
-                      ),
-                    if (canDelete)
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => onDelete(post),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
+            onDelete: canDelete ? () => onDelete(post) : null,
           );
         },
       ),

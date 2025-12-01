@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../models/comment.dart';
@@ -7,6 +8,7 @@ import '../repositories/like_dislike_repository.dart';
 import '../repositories/favorite_repository.dart';
 import '../repositories/post_repository.dart';
 import '../utils/form_validator.dart';
+import '../utils/image_storage_helper.dart';
 
 class PostDetailPage extends StatefulWidget {
   final Post post;
@@ -142,6 +144,17 @@ class _PostDetailPageState extends State<PostDetailPage>
     if (mounted) Navigator.pop(context);
   }
 
+  void _sharePost() {
+    final text = '''
+📝 ${widget.post.title}
+
+${widget.post.content ?? ''}
+
+Por: ${widget.post.userDisplayName ?? 'Desconhecido'}
+''';
+    Share.share(text, subject: widget.post.title);
+  }
+
   @override
   void dispose() {
     _animController.dispose();
@@ -153,19 +166,27 @@ class _PostDetailPageState extends State<PostDetailPage>
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width > 600;
+    final imageFile = ImageStorageHelper.getImageFile(widget.post.imagePath);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detalhes do Post'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: _sharePost,
+            tooltip: 'Compartilhar',
+          ),
+          IconButton(
             icon: Icon(_isFavorited ? Icons.star : Icons.star_border),
             onPressed: _toggleFavorite,
+            tooltip: _isFavorited ? 'Remover dos favoritos' : 'Favoritar',
           ),
           if (_canDeletePost)
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: _deletePost,
+              tooltip: 'Deletar post',
             ),
         ],
       ),
@@ -180,6 +201,7 @@ class _PostDetailPageState extends State<PostDetailPage>
                 ),
                 child: Column(
                   children: [
+                    // Título
                     Text(
                       widget.post.title,
                       style: const TextStyle(
@@ -188,13 +210,51 @@ class _PostDetailPageState extends State<PostDetailPage>
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(widget.post.content ?? ''),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Autor: ${widget.post.userDisplayName ?? "Desconhecido"}',
-                      style: const TextStyle(fontStyle: FontStyle.italic),
+                    
+                    // Conteúdo e Imagem
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Conteúdo do post
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.post.content ?? '',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Autor: ${widget.post.userDisplayName ?? "Desconhecido"}',
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // Imagem (se existir) ao lado direito
+                        if (imageFile != null && imageFile.existsSync()) ...[
+                          const SizedBox(width: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              imageFile,
+                              width: 120,
+                              height: 120,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(height: 8),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Botões de like/dislike
                     Row(
                       children: [
                         IconButton(
