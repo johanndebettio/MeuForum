@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +19,7 @@ Future<void> main() async {
     withPadding: false,
   );
   
-  print('✅ Ícones criados com sucesso!');
+  debugPrint('✅ Ícones criados com sucesso!');
   exit(0);
 }
 
@@ -35,14 +34,14 @@ Future<void> createIcon(String path, {required double size, required bool withPa
   if (withPadding) {
     final bgPaint = Paint()
       ..shader = ui.Gradient.linear(
-        Offset(0, 0),
+        const Offset(0, 0),
         Offset(size, size),
-        [Color(0xFF42A5F5), Color(0xFF1976D2)],
+        const [Color(0xFF42A5F5), Color(0xFF1976D2)],
       );
     
     final rrect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, 0, size, size),
-      Radius.circular(size * 0.2),
+      const Radius.circular(0.2),
     );
     canvas.drawRRect(rrect, bgPaint);
   }
@@ -85,14 +84,14 @@ Future<void> createIcon(String path, {required double size, required bool withPa
   );
   
   final secondPaint = Paint()
-    ..color = Colors.white.withOpacity(0.9)
+    ..color = Colors.white.withValues(alpha: 0.9)
     ..style = PaintingStyle.fill;
   
   canvas.drawRRect(secondBalloonRect, secondPaint);
   
   // Linhas de texto no balão principal
   final linePaint = Paint()
-    ..color = Color(0xFF1976D2)
+    ..color = const Color(0xFF1976D2)
     ..strokeWidth = iconSize * 0.02
     ..strokeCap = StrokeCap.round;
   
@@ -119,5 +118,5 @@ Future<void> createIcon(String path, {required double size, required bool withPa
   await file.parent.create(recursive: true);
   await file.writeAsBytes(buffer);
   
-  print('✅ Criado: $path');
+  debugPrint('✅ Criado: $path');
 }

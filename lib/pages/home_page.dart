@@ -142,20 +142,20 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             itemBuilder: (context) => [
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'profile',
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.person),
                     SizedBox(width: 12),
                     Text('Meu Perfil'),
                   ],
                 ),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'settings',
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.settings),
                     SizedBox(width: 12),
                     Text('Configurações'),
@@ -163,10 +163,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               if (isJohan)
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'reset',
                   child: Row(
-                    children: const [
+                    children: [
                       Icon(Icons.restore),
                       SizedBox(width: 12),
                       Text('Resetar BD'),
@@ -174,10 +174,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               const PopupMenuDivider(),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: 'logout',
                 child: Row(
-                  children: const [
+                  children: [
                     Icon(Icons.logout, color: Colors.red),
                     SizedBox(width: 12),
                     Text('Sair', style: TextStyle(color: Colors.red)),

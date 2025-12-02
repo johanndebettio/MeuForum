@@ -19,26 +19,30 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isUpdating = false;
 
   Future<void> _updateProfileImage() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final userProvider = context.read<UserProvider>();
+    
     final image = await _imagePickerHelper.pickImageWithDialog(context);
     if (image == null) return;
 
+    if (!mounted) return;
+
     setState(() => _isUpdating = true);
 
-    final userProvider = context.read<UserProvider>();
     final error = await userProvider.updateProfileImage(image);
 
     setState(() => _isUpdating = false);
 
-    if (mounted) {
-      if (error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto de perfil atualizada!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
-      }
+    if (!mounted) return;
+
+    if (error == null) {
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Foto de perfil atualizada!')),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text(error)),
+      );
     }
   }
 
@@ -83,7 +87,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   if (_isUpdating)
                     Positioned.fill(
                       child: Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.black45,
                           shape: BoxShape.circle,
                         ),

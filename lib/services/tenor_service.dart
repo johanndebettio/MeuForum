@@ -49,20 +49,16 @@ class TenorService {
         'lang=pt',
       );
 
-      print('Buscando GIFs: $url');
       final response = await http.get(url);
-      print('Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['data'] as List;
         return results.map((json) => TenorGif.fromJson(json)).toList();
       } else {
-        print('Erro: ${response.body}');
         throw Exception('Erro ao buscar GIFs: ${response.statusCode}');
       }
     } catch (e) {
-      print('Exceção: $e');
       throw Exception('Erro ao buscar GIFs: $e');
     }
   }
@@ -79,20 +75,16 @@ class TenorService {
         'rating=g',
       );
 
-      print('Buscando GIFs em destaque');
       final response = await http.get(url);
-      print('Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final results = data['data'] as List;
         return results.map((json) => TenorGif.fromJson(json)).toList();
       } else {
-        print('Erro: ${response.body}');
         throw Exception('Erro ao buscar GIFs em destaque: ${response.statusCode}');
       }
     } catch (e) {
-      print('Exceção: $e');
       throw Exception('Erro ao buscar GIFs em destaque: $e');
     }
   }

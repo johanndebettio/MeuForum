@@ -47,6 +47,8 @@
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Precisamos acessar sua galeria para você adicionar imagens aos posts</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Precisamos salvar imagens na sua galeria</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Precisamos acessar sua câmera para você tirar fotos para os posts</string>
 	<key>NSMicrophoneUsageDescription</key>

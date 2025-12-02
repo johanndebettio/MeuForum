@@ -66,6 +66,10 @@ class _CreatePostPageState extends State<CreatePostPage>
     try {
       String? imagePath;
       
+      final postProvider = context.read<PostProvider>();
+      final navigator = Navigator.of(context);
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      
       // Se há uma imagem selecionada, salva ela
       if (_selectedImage != null) {
         imagePath = await ImageStorageHelper.saveImage(
@@ -83,11 +87,12 @@ class _CreatePostPageState extends State<CreatePostPage>
         imagePath: imagePath,
       );
 
-      await context.read<PostProvider>().createPost(post);
+      await postProvider.createPost(post);
 
-      _showMessage('Post criado com sucesso!');
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context, true);
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Post criado com sucesso!')),
+      );
+      navigator.pop(true);
     } catch (e) {
       _showMessage('Erro ao criar post: $e');
     }

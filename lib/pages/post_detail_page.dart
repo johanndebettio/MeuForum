@@ -68,11 +68,6 @@ class _PostDetailPageState extends State<PostDetailPage>
     setState(() => _loading = true);
     final comments = await _commentRepo.getCommentsByPost(widget.post.id!);
     
-    print('📝 Carregando ${comments.length} comentários');
-    for (var comment in comments) {
-      print('   - Comentário ID ${comment.id}: gifUrl = ${comment.gifUrl}');
-    }
-    
     final isFav = await _favRepo.isFavorited(widget.user.id!, widget.post.id!);
     final likes = await _likeRepo.getLikesCount(widget.post.id!);
     final reaction =
@@ -124,8 +119,6 @@ class _PostDetailPageState extends State<PostDetailPage>
       return;
     }
 
-    print('🎬 Criando comentário com GIF URL: ${_selectedGif?.url}');
-    
     await _commentRepo.createComment(Comment(
       postId: widget.post.id!,
       userId: widget.user.id!,
