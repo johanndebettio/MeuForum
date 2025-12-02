@@ -1,0 +1,58 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ iPhone-test, main ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v4
+    
+    - name: Configurar Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Instalar dependências
+      run: flutter pub get
+    
+    - name: Analisar código
+      run: flutter analyze
+    
+    - name: Configurar ícones
+      run: dart run flutter_launcher_icons
+    
+    - name: Build iOS (sem assinatura)
+      run: |
+        flutter build ios --release --no-codesign
+    
+    - name: Criar arquivo IPA
+      run: |
+        mkdir -p Payload
+        cp -r build/ios/iphoneos/Runner.app Payload/
+        zip -r ForumMobile.ipa Payload
+    
+    - name: Upload do IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app
+        path: ForumMobile.ipa
+        retention-days: 30
+    
+    - name: Criar Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ios-v${{ github.run_number }}
+        name: iOS Build v${{ github.run_number }}
+        files: ForumMobile.ipa
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
