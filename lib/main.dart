@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'pages/login_page.dart';
 import 'pages/home_page.dart';
+import 'pages/splash_screen.dart';
 import 'providers/user_provider.dart';
 import 'providers/post_provider.dart';
 import 'providers/theme_provider.dart';
@@ -25,7 +26,7 @@ class MeuForumApp extends StatelessWidget {
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           return MaterialApp(
-            title: 'Meu Fórum',
+            title: 'Forum - Mobile',
             debugShowCheckedModeBanner: false,
             theme: ThemeProvider.lightTheme,
             darkTheme: ThemeProvider.darkTheme,
@@ -50,13 +51,11 @@ class AppLoader extends StatelessWidget {
       future: Future(() async {
         await userProvider.loadSession();
         await postProvider.loadPosts();
-        await Future.delayed(const Duration(milliseconds: 800));
+        await Future.delayed(const Duration(milliseconds: 1500));
       }),
       builder: (_, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const SplashScreen();
         }
 
         if (userProvider.isLoggedIn && userProvider.user != null) {

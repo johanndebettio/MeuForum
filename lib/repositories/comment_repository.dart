@@ -7,7 +7,7 @@ class CommentRepository {
   Future<List<Comment>> getCommentsByPost(int postId) async {
     final database = await db.database;
     final commentsData = await database.rawQuery('''
-      SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, u.display_name as userDisplayName
+      SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, c.gif_url, u.display_name as userDisplayName
       FROM comments c
       JOIN users u ON c.user_id = u.id
       WHERE c.post_id = ?

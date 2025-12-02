@@ -1,6 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart';  // Desabilitado temporariamente
 import '../models/post.dart';
 import '../utils/image_storage_helper.dart';
 
@@ -21,6 +20,8 @@ class PostCard extends StatelessWidget {
   });
 
   void _sharePost() {
+    // Temporariamente desabilitado
+    /* 
     final text = '''
 📝 ${post.title}
 
@@ -29,6 +30,7 @@ ${post.content ?? ''}
 Por: ${post.userDisplayName ?? 'Desconhecido'}
 ''';
     Share.share(text, subject: post.title);
+    */
   }
 
   @override

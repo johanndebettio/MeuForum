@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+// import 'package:share_plus/share_plus.dart';  // Desabilitado temporariamente
 import '../models/post.dart';
 import '../models/user.dart';
 import '../models/comment.dart';
@@ -9,6 +9,8 @@ import '../repositories/favorite_repository.dart';
 import '../repositories/post_repository.dart';
 import '../utils/form_validator.dart';
 import '../utils/image_storage_helper.dart';
+import '../widgets/gif_picker_dialog.dart';
+import '../services/giphy_service.dart';
 
 class PostDetailPage extends StatefulWidget {
   final Post post;
@@ -34,6 +36,7 @@ class _PostDetailPageState extends State<PostDetailPage>
   int _likesCount = 0;
   int? _userReaction;
   bool _loading = false;
+  GiphyGif? _selectedGif;
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
@@ -64,6 +67,12 @@ class _PostDetailPageState extends State<PostDetailPage>
   Future<void> _loadData() async {
     setState(() => _loading = true);
     final comments = await _commentRepo.getCommentsByPost(widget.post.id!);
+    
+    print('📝 Carregando ${comments.length} comentários');
+    for (var comment in comments) {
+      print('   - Comentário ID ${comment.id}: gifUrl = ${comment.gifUrl}');
+    }
+    
     final isFav = await _favRepo.isFavorited(widget.user.id!, widget.post.id!);
     final likes = await _likeRepo.getLikesCount(widget.post.id!);
     final reaction =
@@ -93,6 +102,17 @@ class _PostDetailPageState extends State<PostDetailPage>
     _loadData();
   }
 
+  Future<void> _pickGif() async {
+    final gif = await showDialog<GiphyGif>(
+      context: context,
+      builder: (context) => const GifPickerDialog(),
+    );
+    
+    if (gif != null) {
+      setState(() => _selectedGif = gif);
+    }
+  }
+
   Future<void> _addComment() async {
     final text = _commentController.text.trim();
 
@@ -104,13 +124,17 @@ class _PostDetailPageState extends State<PostDetailPage>
       return;
     }
 
+    print('🎬 Criando comentário com GIF URL: ${_selectedGif?.url}');
+    
     await _commentRepo.createComment(Comment(
       postId: widget.post.id!,
       userId: widget.user.id!,
       content: text,
+      gifUrl: _selectedGif?.url,
     ));
 
     _commentController.clear();
+    setState(() => _selectedGif = null);
     _loadData();
   }
 
@@ -145,6 +169,12 @@ class _PostDetailPageState extends State<PostDetailPage>
   }
 
   void _sharePost() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Funcionalidade de compartilhamento em desenvolvimento'),
+      ),
+    );
+    /* Temporariamente desabilitado
     final text = '''
 📝 ${widget.post.title}
 
@@ -153,6 +183,7 @@ ${widget.post.content ?? ''}
 Por: ${widget.post.userDisplayName ?? 'Desconhecido'}
 ''';
     Share.share(text, subject: widget.post.title);
+    */
   }
 
   @override
@@ -282,36 +313,124 @@ Por: ${widget.post.userDisplayName ?? 'Desconhecido'}
                         itemCount: _comments.length,
                         itemBuilder: (_, i) {
                           final c = _comments[i];
-                          return ListTile(
-                            title: Text(
-                              '${c.userDisplayName ?? "Usuário"}: ${c.content}',
+                          return Card(
+                            margin: const EdgeInsets.symmetric(vertical: 4),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          '${c.userDisplayName ?? "Usuário"}: ${c.content}',
+                                        ),
+                                      ),
+                                      if (_canDeleteComment(c))
+                                        IconButton(
+                                          icon: const Icon(Icons.delete),
+                                          onPressed: () => _deleteComment(c),
+                                        ),
+                                    ],
+                                  ),
+                                  if (c.gifUrl != null && c.gifUrl!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        c.gifUrl!,
+                                        height: 150,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (context, child, progress) {
+                                          if (progress == null) return child;
+                                          return SizedBox(
+                                            height: 150,
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                value: progress.expectedTotalBytes != null
+                                                    ? progress.cumulativeBytesLoaded /
+                                                        progress.expectedTotalBytes!
+                                                    : null,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return const SizedBox(
+                                            height: 150,
+                                            child: Center(
+                                              child: Icon(Icons.error),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
                             ),
-                            trailing: _canDeleteComment(c)
-                                ? IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    onPressed: () => _deleteComment(c),
-                                  )
-                                : null,
                           );
                         },
                       ),
                     ),
-                    TextField(
-                      controller: _commentController,
-                      onChanged: (_) {
-                        _formValidator.clearError('content');
-                        setState(() {});
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Adicionar comentário',
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.send),
-                          onPressed: _addComment,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_selectedGif != null) ...[
+                          Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  _selectedGif!.previewUrl,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: CircleAvatar(
+                                  radius: 12,
+                                  backgroundColor: Colors.black54,
+                                  child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    iconSize: 16,
+                                    icon: const Icon(Icons.close, color: Colors.white),
+                                    onPressed: () {
+                                      setState(() => _selectedGif = null);
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        TextField(
+                          controller: _commentController,
+                          onChanged: (_) {
+                            _formValidator.clearError('content');
+                            setState(() {});
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Adicionar comentário',
+                            prefixIcon: IconButton(
+                              icon: const Icon(Icons.gif_box),
+                              onPressed: _pickGif,
+                              tooltip: 'Adicionar GIF',
+                            ),
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.send),
+                              onPressed: _addComment,
+                            ),
+                            border: const OutlineInputBorder(),
+                            errorText: _formValidator.getError('content'),
+                            helperText: 'Máximo 500 caracteres',
+                          ),
                         ),
-                        border: const OutlineInputBorder(),
-                        errorText: _formValidator.getError('content'),
-                        helperText: 'Máximo 500 caracteres',
-                      ),
+                      ],
                     ),
                   ],
                 ),

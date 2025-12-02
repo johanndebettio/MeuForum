@@ -32,7 +32,7 @@ class DB {
 
       final db = await openDatabase(
         path,
-        version: 2, // Incrementada a versão para adicionar novas colunas
+        version: 3, // Incrementada a versão para adicionar gif_url em comments
         onCreate: (db, version) async {
           print('Criando tabelas...');
           await _onCreate(db, version);
@@ -113,7 +113,26 @@ class DB {
         print('Erro ao adicionar coluna image_path: $e');
       }
 
-      print('Upgrade do banco concluído!');
+      print('Upgrade para versão 2 concluído!');
+    }
+
+    if (oldVersion < 3) {
+      try {
+        // Verifica se a coluna gif_url já existe em comments
+        final commentsColumns = await db.rawQuery('PRAGMA table_info(comments)');
+        final hasGifUrl = commentsColumns.any((col) => col['name'] == 'gif_url');
+        
+        if (!hasGifUrl) {
+          await db.execute('ALTER TABLE comments ADD COLUMN gif_url TEXT');
+          print('Coluna gif_url adicionada em comments');
+        } else {
+          print('Coluna gif_url já existe em comments');
+        }
+      } catch (e) {
+        print('Erro ao adicionar coluna gif_url: $e');
+      }
+
+      print('Upgrade para versão 3 concluído!');
     }
   }
 
@@ -147,6 +166,7 @@ class DB {
       user_id INTEGER NOT NULL,
       content TEXT NOT NULL,
       created_at TEXT,
+      gif_url TEXT,
       FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );

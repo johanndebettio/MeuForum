@@ -69,22 +69,6 @@ class SettingsPage extends StatelessWidget {
               );
             },
           ),
-          const Divider(height: 32),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              'Sobre',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('Versão'),
-            subtitle: const Text('1.0.0'),
-          ),
         ],
       ),
     );
