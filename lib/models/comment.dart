@@ -5,6 +5,7 @@ class Comment {
   String content;
   String? createdAt;
   String? userDisplayName;
+  String? gifUrl; // URL do GIF anexado
 
   Comment({
     this.id,
@@ -13,6 +14,7 @@ class Comment {
     required this.content,
     this.createdAt,
     this.userDisplayName,
+    this.gifUrl,
   });
 
   factory Comment.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class Comment {
       content: map['content'] as String,
       createdAt: map['created_at'] as String?,
       userDisplayName: map['userDisplayName'] as String?,
+      gifUrl: map['gif_url'] as String?,
     );
   }
 
@@ -33,6 +36,7 @@ class Comment {
       'user_id': userId,
       'content': content,
       'created_at': createdAt,
+      'gif_url': gifUrl,
     };
   }
 }

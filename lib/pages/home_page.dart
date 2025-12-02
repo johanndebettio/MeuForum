@@ -4,12 +4,15 @@ import 'package:provider/provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../providers/post_provider.dart';
+import '../utils/image_storage_helper.dart';
 import 'all_posts_page.dart';
 import 'favorites_page.dart';
 import 'my_posts_page.dart';
 import 'create_post_page.dart';
 import 'login_page.dart';
 import 'reset_database_page.dart';
+import 'settings_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final User user;
@@ -114,28 +117,105 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final titles = ['Todos os Posts', 'Meus Posts', 'Favoritos'];
     final isJohan = widget.user.username.toLowerCase() == 'johan';
+    final user = context.watch<UserProvider>().user ?? widget.user;
+    final imageFile = ImageStorageHelper.getImageFile(user.profileImagePath);
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(titles[_selectedIndex]),
         actions: [
-          if (isJohan)
-            IconButton(
-              icon: const Icon(Icons.restore),
-              tooltip: 'Resetar Banco de Dados',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ResetDatabasePage(),
-                  ),
-                );
-              },
+          // Menu com foto de perfil
+          PopupMenuButton<String>(
+            offset: const Offset(0, 50),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.grey[300],
+                backgroundImage: imageFile != null && imageFile.existsSync()
+                    ? FileImage(imageFile)
+                    : null,
+                child: imageFile == null || !imageFile.existsSync()
+                    ? Icon(Icons.person, size: 20, color: Colors.grey[600])
+                    : null,
+              ),
             ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logout,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'profile',
+                child: Row(
+                  children: const [
+                    Icon(Icons.person),
+                    SizedBox(width: 12),
+                    Text('Meu Perfil'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'settings',
+                child: Row(
+                  children: const [
+                    Icon(Icons.settings),
+                    SizedBox(width: 12),
+                    Text('Configurações'),
+                  ],
+                ),
+              ),
+              if (isJohan)
+                PopupMenuItem(
+                  value: 'reset',
+                  child: Row(
+                    children: const [
+                      Icon(Icons.restore),
+                      SizedBox(width: 12),
+                      Text('Resetar BD'),
+                    ],
+                  ),
+                ),
+              const PopupMenuDivider(),
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: const [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Sair', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (value) {
+              switch (value) {
+                case 'profile':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProfilePage(user: user),
+                    ),
+                  );
+                  break;
+                case 'settings':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SettingsPage(),
+                    ),
+                  );
+                  break;
+                case 'reset':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ResetDatabasePage(),
+                    ),
+                  );
+                  break;
+                case 'logout':
+                  _logout();
+                  break;
+              }
+            },
           ),
         ],
       ),

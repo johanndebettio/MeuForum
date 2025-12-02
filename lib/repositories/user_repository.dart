@@ -65,4 +65,26 @@ class UserRepository {
     final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$');
     return regex.hasMatch(password);
   }
+
+  /// Atualiza a foto de perfil do usuário
+  Future<void> updateProfileImage(int userId, String imagePath) async {
+    final database = await db.database;
+    await database.update(
+      'users',
+      {'profile_image_path': imagePath},
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+  }
+
+  /// Atualiza os dados do usuário
+  Future<void> updateUser(User user) async {
+    final database = await db.database;
+    await database.update(
+      'users',
+      user.toMap(),
+      where: 'id = ?',
+      whereArgs: [user.id],
+    );
+  }
 }

@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../repositories/user_repository.dart';
+import '../utils/image_storage_helper.dart';
 
 class UserProvider extends ChangeNotifier {
   User? _user;
@@ -62,5 +64,43 @@ class UserProvider extends ChangeNotifier {
     await prefs.remove('username');
     _user = null;
     notifyListeners();
+  }
+
+  /// Atualiza a foto de perfil do usuário
+  Future<String?> updateProfileImage(File imageFile) async {
+    try {
+      if (_user?.id == null) {
+        return 'Usuário não identificado';
+      }
+
+      // Salva a imagem
+      final imagePath = await ImageStorageHelper.saveImage(
+        imageFile,
+        customName: 'profile_${_user!.id}${imageFile.path.substring(imageFile.path.lastIndexOf('.'))}',
+      );
+
+      // Atualiza no banco
+      await _userRepo.updateProfileImage(_user!.id!, imagePath);
+
+      // Atualiza o usuário local
+      _user!.profileImagePath = imagePath;
+      notifyListeners();
+
+      return null; // Sucesso
+    } catch (e) {
+      debugPrint('Erro ao atualizar foto de perfil: $e');
+      return 'Erro ao salvar foto de perfil';
+    }
+  }
+
+  /// Recarrega os dados do usuário do banco
+  Future<void> reloadUser() async {
+    if (_user?.username != null) {
+      final updatedUser = await _userRepo.getUserByUsername(_user!.username);
+      if (updatedUser != null) {
+        _user = updatedUser;
+        notifyListeners();
+      }
+    }
   }
 }

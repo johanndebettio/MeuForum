@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../models/post.dart';
 import '../providers/post_provider.dart';
 import '../utils/form_validator.dart';
+import '../utils/image_picker_helper.dart';
+import '../utils/image_storage_helper.dart';
 
 class CreatePostPage extends StatefulWidget {
   final User user;
@@ -18,9 +21,11 @@ class _CreatePostPageState extends State<CreatePostPage>
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _formValidator = FormValidator();
+  final _imagePickerHelper = ImagePickerHelper();
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
+  File? _selectedImage;
 
   @override
   void initState() {
@@ -59,12 +64,23 @@ class _CreatePostPageState extends State<CreatePostPage>
     }
 
     try {
+      String? imagePath;
+      
+      // Se há uma imagem selecionada, salva ela
+      if (_selectedImage != null) {
+        imagePath = await ImageStorageHelper.saveImage(
+          _selectedImage!,
+          customName: 'post_${DateTime.now().millisecondsSinceEpoch}${_selectedImage!.path.substring(_selectedImage!.path.lastIndexOf('.'))}',
+        );
+      }
+
       final post = Post(
         userId: widget.user.id!,
         title: title,
         content: content.isEmpty ? null : content,
         createdAt: DateTime.now().toIso8601String(),
         userDisplayName: widget.user.displayName,
+        imagePath: imagePath,
       );
 
       await context.read<PostProvider>().createPost(post);
@@ -73,12 +89,27 @@ class _CreatePostPageState extends State<CreatePostPage>
       // ignore: use_build_context_synchronously
       Navigator.pop(context, true);
     } catch (e) {
-      _showMessage('Erro ao criar post');
+      _showMessage('Erro ao criar post: $e');
     }
   }
 
   void _showMessage(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> _pickImage() async {
+    final image = await _imagePickerHelper.pickImageWithDialog(context);
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+    });
   }
 
   @override
@@ -126,6 +157,52 @@ class _CreatePostPageState extends State<CreatePostPage>
                     ),
                     maxLines: 5,
                   ),
+                  const SizedBox(height: 16),
+                  // Seção de imagem
+                  if (_selectedImage != null)
+                    Stack(
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              _selectedImage!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: _removeImage,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    OutlinedButton.icon(
+                      onPressed: _pickImage,
+                      icon: const Icon(Icons.image),
+                      label: const Text('Adicionar Imagem (opcional)'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
