@@ -19,7 +19,7 @@ dependencies:
   provider: ^6.1.2
   shared_preferences: ^2.2.2
   image_picker: ^1.0.7
-  # share_plus: ^7.0.0  # Temporariamente desabilitado devido a problemas de compatibilidade
+  share_plus: 7.2.2
   http: ^1.1.0
 
 dev_dependencies:

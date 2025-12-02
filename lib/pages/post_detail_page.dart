@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:share_plus/share_plus.dart';  // Desabilitado temporariamente
+import 'package:share_plus/share_plus.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../models/comment.dart';
@@ -169,12 +169,6 @@ class _PostDetailPageState extends State<PostDetailPage>
   }
 
   void _sharePost() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Funcionalidade de compartilhamento em desenvolvimento'),
-      ),
-    );
-    /* Temporariamente desabilitado
     final text = '''
 📝 ${widget.post.title}
 
@@ -183,7 +177,6 @@ ${widget.post.content ?? ''}
 Por: ${widget.post.userDisplayName ?? 'Desconhecido'}
 ''';
     Share.share(text, subject: widget.post.title);
-    */
   }
 
   @override
