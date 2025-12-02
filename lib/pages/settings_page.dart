@@ -29,41 +29,50 @@ class SettingsPage extends StatelessWidget {
             builder: (context, themeProvider, child) {
               return Column(
                 children: [
-                  RadioListTile<ThemeMode>(
+                  ListTile(
                     title: const Text('Tema Claro'),
                     subtitle: const Text('Sempre usar tema claro'),
-                    value: ThemeMode.light,
-                    groupValue: themeProvider.themeMode,
-                    onChanged: (ThemeMode? value) {
-                      if (value != null) {
-                        themeProvider.setThemeMode(value);
-                      }
-                    },
-                    secondary: const Icon(Icons.light_mode),
+                    leading: const Icon(Icons.light_mode),
+                    trailing: Radio<ThemeMode>(
+                      value: ThemeMode.light,
+                      groupValue: themeProvider.themeMode,
+                      onChanged: (ThemeMode? value) {
+                        if (value != null) {
+                          themeProvider.setThemeMode(value);
+                        }
+                      },
+                    ),
+                    onTap: () => themeProvider.setThemeMode(ThemeMode.light),
                   ),
-                  RadioListTile<ThemeMode>(
+                  ListTile(
                     title: const Text('Tema Escuro'),
                     subtitle: const Text('Sempre usar tema escuro'),
-                    value: ThemeMode.dark,
-                    groupValue: themeProvider.themeMode,
-                    onChanged: (ThemeMode? value) {
-                      if (value != null) {
-                        themeProvider.setThemeMode(value);
-                      }
-                    },
-                    secondary: const Icon(Icons.dark_mode),
+                    leading: const Icon(Icons.dark_mode),
+                    trailing: Radio<ThemeMode>(
+                      value: ThemeMode.dark,
+                      groupValue: themeProvider.themeMode,
+                      onChanged: (ThemeMode? value) {
+                        if (value != null) {
+                          themeProvider.setThemeMode(value);
+                        }
+                      },
+                    ),
+                    onTap: () => themeProvider.setThemeMode(ThemeMode.dark),
                   ),
-                  RadioListTile<ThemeMode>(
+                  ListTile(
                     title: const Text('Sistema'),
                     subtitle: const Text('Seguir configuração do sistema'),
-                    value: ThemeMode.system,
-                    groupValue: themeProvider.themeMode,
-                    onChanged: (ThemeMode? value) {
-                      if (value != null) {
-                        themeProvider.setThemeMode(value);
-                      }
-                    },
-                    secondary: const Icon(Icons.brightness_auto),
+                    leading: const Icon(Icons.brightness_auto),
+                    trailing: Radio<ThemeMode>(
+                      value: ThemeMode.system,
+                      groupValue: themeProvider.themeMode,
+                      onChanged: (ThemeMode? value) {
+                        if (value != null) {
+                          themeProvider.setThemeMode(value);
+                        }
+                      },
+                    ),
+                    onTap: () => themeProvider.setThemeMode(ThemeMode.system),
                   ),
                 ],
               );

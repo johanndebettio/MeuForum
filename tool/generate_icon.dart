@@ -84,7 +84,7 @@ Future<void> createIcon(String path, {required double size, required bool withPa
   );
   
   final secondPaint = Paint()
-    ..color = Colors.white.withOpacity(0.9)
+    ..color = const Color.fromRGBO(255, 255, 255, 0.9)
     ..style = PaintingStyle.fill;
   
   canvas.drawRRect(secondBalloonRect, secondPaint);
